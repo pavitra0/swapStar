@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserProfile } from "@/app/actions";
+import { getUserProfile, getSwapStarUserByGithubId } from "@/app/actions";
 import { Loader2, MapPin, Link as LinkIcon, Twitter, Users } from "lucide-react";
+import { FollowButton } from "@/components/follow-button";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DeveloperProfileProps {
@@ -12,12 +13,22 @@ interface DeveloperProfileProps {
 export function DeveloperProfile({ username }: DeveloperProfileProps) {
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [internalUser, setInternalUser] = useState<any>(null);
 
     useEffect(() => {
         setLoading(true);
         if (username) {
-            getUserProfile(username).then(data => {
+            getUserProfile(username).then(async (data) => {
                 setProfile(data);
+                if (data && data.id) {
+                    // Try to find internal user
+                    try {
+                        const internal = await getSwapStarUserByGithubId(data.id);
+                        setInternalUser(internal);
+                    } catch (e) {
+                        console.error("Failed to fetch internal user");
+                    }
+                }
                 setLoading(false);
             });
         }
@@ -48,6 +59,16 @@ export function DeveloperProfile({ username }: DeveloperProfileProps) {
                                 Lvl {Math.floor((profile.public_repos + profile.followers) / 10)}
                             </div>
                         </div>
+
+                        {internalUser && (
+                            <div className="flex gap-2">
+                                <FollowButton
+                                    targetUserId={internalUser.id}
+                                    initialIsFollowing={internalUser.isFollowing}
+                                    className="px-6 py-2 text-sm"
+                                />
+                            </div>
+                        )}
 
                         <div>
                             <h2 className="text-2xl font-black">{profile.name || profile.login}</h2>

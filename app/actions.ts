@@ -188,11 +188,18 @@ export async function getUserStats() {
     const session = await getServerSession(authOptions);
     // @ts-ignore
     const userId = session?.user?.id;
-    return repoStore.getStats(userId);
+    const [stats, followStats] = await Promise.all([
+        repoStore.getStats(userId),
+        getFollowStats(userId)
+    ]);
+    return { ...stats, ...followStats };
 }
 
 export async function getLeaderboard() {
-    return repoStore.getLeaderboard();
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+    return repoStore.getLeaderboard(currentUserId);
 }
 
 export async function getUserProfile(username: string) {
@@ -207,5 +214,243 @@ export async function getUserStarredRepos() {
 
     if (!token) return [];
 
+
     return fetchUserStarredReposDetails(token);
+}
+
+// --- Messaging Actions ---
+
+export async function createConversation(recipientId: string) {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId || !recipientId) return { success: false, error: "Invalid users" };
+    if (currentUserId === recipientId) return { success: false, error: "Cannot message yourself" };
+
+    try {
+        // Check if conversation exists
+        let conversation = await prisma.conversation.findFirst({
+            where: {
+                AND: [
+                    { participants: { some: { id: currentUserId } } },
+                    { participants: { some: { id: recipientId } } }
+                ]
+            }
+        });
+
+        if (!conversation) {
+            conversation = await prisma.conversation.create({
+                data: {
+                    participants: {
+                        connect: [{ id: currentUserId }, { id: recipientId }]
+                    }
+                }
+            });
+        }
+
+        return { success: true, conversationId: conversation.id };
+    } catch (error) {
+        console.error("Create conversation error:", error);
+        return { success: false, error: "Failed to create conversation" };
+    }
+}
+
+export async function sendMessage(conversationId: string, content: string) {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId || !conversationId || !content) return { success: false, error: "Missing data" };
+
+    try {
+        const message = await prisma.message.create({
+            data: {
+                content,
+                senderId: currentUserId,
+                conversationId,
+            }
+        });
+
+        await prisma.conversation.update({
+            where: { id: conversationId },
+            data: { updatedAt: new Date() }
+        });
+
+        return { success: true, message };
+    } catch (error) {
+        console.error("Send message error:", error);
+        return { success: false, error: "Failed to send message" };
+    }
+}
+
+export async function getConversations() {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) return [];
+
+    try {
+        const conversations = await prisma.conversation.findMany({
+            where: {
+                participants: { some: { id: currentUserId } }
+            },
+            include: {
+                participants: {
+                    where: { id: { not: currentUserId } },
+                    select: { id: true, name: true, image: true, email: true }
+                },
+                messages: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                }
+            },
+            orderBy: { updatedAt: 'desc' }
+        });
+
+        return conversations.map(c => ({
+            id: c.id,
+            partner: c.participants[0],
+            lastMessage: c.messages[0],
+            updatedAt: c.updatedAt
+        }));
+    } catch (error) {
+        console.error("Get conversations error:", error);
+        return [];
+    }
+}
+
+export async function getMessages(conversationId: string) {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) return [];
+
+    try {
+        const messages = await prisma.message.findMany({
+            where: { conversationId },
+            orderBy: { createdAt: 'asc' },
+            include: { sender: { select: { id: true, name: true, image: true } } }
+        });
+        return messages;
+    } catch (error) {
+        return [];
+    }
+}
+
+// --- Follow Actions ---
+
+export async function toggleFollow(targetUserId: string) {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId || !targetUserId) return { success: false, error: "Invalid users" };
+    if (currentUserId === targetUserId) return { success: false, error: "Cannot follow yourself" };
+
+    try {
+        const existingFollow = await prisma.follows.findUnique({
+            where: {
+                followerId_followingId: {
+                    followerId: currentUserId,
+                    followingId: targetUserId
+                }
+            }
+        });
+
+        if (existingFollow) {
+            // Unfollow
+            await prisma.follows.delete({
+                where: {
+                    followerId_followingId: {
+                        followerId: currentUserId,
+                        followingId: targetUserId
+                    }
+                }
+            });
+            return { success: true, isFollowing: false };
+        } else {
+            // Follow
+            await prisma.follows.create({
+                data: {
+                    followerId: currentUserId,
+                    followingId: targetUserId
+                }
+            });
+            return { success: true, isFollowing: true };
+        }
+    } catch (error) {
+        console.error("Toggle follow error:", error);
+        return { success: false, error: "Database error" };
+    }
+}
+
+export async function getFollowStats(userId: string) {
+    try {
+        const [followers, following] = await Promise.all([
+            prisma.follows.count({ where: { followingId: userId } }),
+            prisma.follows.count({ where: { followerId: userId } })
+        ]);
+        return { followers, following };
+    } catch (error) {
+        return { followers: 0, following: 0 };
+    }
+}
+
+export async function checkIsFollowing(targetUserId: string) {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) return false;
+
+    const follow = await prisma.follows.findUnique({
+        where: {
+            followerId_followingId: {
+                followerId: currentUserId,
+                followingId: targetUserId
+            }
+        }
+    });
+
+
+    return !!follow;
+}
+
+export async function getSwapStarUserByGithubId(githubId: number) {
+    const session = await getServerSession(authOptions);
+    // @ts-ignore
+    const currentUserId = session?.user?.id;
+
+    try {
+        const account = await prisma.account.findFirst({
+            where: {
+                provider: 'github',
+                providerAccountId: githubId.toString()
+            },
+            include: {
+                user: {
+                    include: {
+                        followedBy: currentUserId ? {
+                            where: { followerId: currentUserId }
+                        } : false
+                    }
+                }
+            }
+        });
+
+        if (!account || !(account as any).user) return null;
+
+        const user = (account as any).user;
+
+        return {
+            id: user.id,
+            isFollowing: user.followedBy ? user.followedBy.length > 0 : false,
+            // We can add internal stats here if we want to mix them
+        };
+    } catch (error) {
+        return null;
+    }
 }

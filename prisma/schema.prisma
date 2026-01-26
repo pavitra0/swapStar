@@ -47,6 +47,24 @@ model User {
   sessions       Session[]
   submittedRepos SubmittedRepo[]
   swipes         Swipe[]
+  
+  // Messaging Relations
+  conversations  Conversation[]
+  messagesSent   Message[]
+  
+  // Follow Relations
+  followedBy Follows[] @relation("followedBy")
+  following  Follows[] @relation("following")
+}
+
+model Follows {
+  follower    User     @relation("following", fields: [followerId], references: [id])
+  followerId  String
+  following   User     @relation("followedBy", fields: [followingId], references: [id])
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
 }
 
 model VerificationToken {
@@ -81,4 +99,25 @@ model Badge {
   badgeId   String
   awardedAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  participants User[]
+  messages     Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  content        String
+  createdAt      DateTime     @default(now())
+  senderId       String
+  conversationId String
+  read           Boolean      @default(false)
+  
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }

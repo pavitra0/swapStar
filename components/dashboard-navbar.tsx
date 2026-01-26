@@ -25,6 +25,10 @@ export function DashboardNavbar() {
                     <Trophy className="w-4 h-4" />
                     Leaderboard
                 </Link>
+                <Link href="/messages" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Messages
+                </Link>
                 <Link href="/stars" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                     <Star className="w-4 h-4" />
                     My Stars

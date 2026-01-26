@@ -1,13 +1,16 @@
 "use client";
 
 // import { useEffect, useState } from "react";
-import { getLeaderboard } from "@/app/actions";
-import { Trophy, Star, Medal, User, Loader2 } from "lucide-react";
+import { getLeaderboard, createConversation } from "@/app/actions";
+import { Trophy, Star, Medal, User, Loader2, MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { FollowButton } from "@/components/follow-button";
 
 import { useQuery } from "@tanstack/react-query";
 
 export default function LeaderboardPage() {
+    const router = useRouter();
     const { data: users = [], isLoading: loading } = useQuery({
         queryKey: ['leaderboard'],
         queryFn: () => getLeaderboard()
@@ -25,55 +28,97 @@ export default function LeaderboardPage() {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-10 h-10 animate-spin text-muted-foreground" />
+                </div>
+            ) : users.length === 0 ? (
+                <div className="text-center py-20 text-muted-foreground border-2 border-dashed border-border/50 rounded-2xl">
+                    <Trophy className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                    <h3 className="text-xl font-bold">No users yet</h3>
+                    <p>Be the first to join the leaderboard!</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {users.map((user, index) => (
-                        <div
-                            key={index}
-                            className={cn(
-                                "flex items-center gap-4 p-4 rounded-xl border transition-all hover:scale-[1.01]",
-                                index === 0 ? "bg-gradient-to-r from-yellow-500/20 to-transparent border-yellow-500/50" :
-                                    index === 1 ? "bg-gradient-to-r from-zinc-400/20 to-transparent border-zinc-400/50" :
-                                        index === 2 ? "bg-gradient-to-r from-orange-500/20 to-transparent border-orange-500/50" :
-                                            "bg-card border-border"
-                            )}
-                        >
-                            <div className="w-12 flex justify-center font-black text-xl text-muted-foreground">
-                                {index === 0 ? <Medal className="w-8 h-8 text-yellow-500" /> :
-                                    index === 1 ? <Medal className="w-8 h-8 text-zinc-400" /> :
-                                        index === 2 ? <Medal className="w-8 h-8 text-orange-500" /> :
-                                            `#${index + 1}`}
-                            </div>
-
-                            <div className="relative">
-                                <div className={cn("w-12 h-12 rounded-full overflow-hidden border-2",
-                                    index === 0 ? "border-yellow-500" : "border-border"
-                                )}>
-                                    <img src={user.avatar} className="w-full h-full object-cover" />
+                    {users.map((user, index) => {
+                        if (user.id === 'error') {
+                            return (
+                                <div key="error" className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-center font-bold">
+                                    {user.name}
                                 </div>
-                                {user.isUser && (
-                                    <div className="absolute -bottom-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                                        YOU
-                                    </div>
+                            );
+                        }
+                        return (
+                            <div
+                                key={index}
+                                className={cn(
+                                    "flex items-center gap-4 p-4 rounded-xl border transition-all hover:scale-[1.01]",
+                                    index === 0 ? "bg-gradient-to-r from-yellow-500/20 to-transparent border-yellow-500/50" :
+                                        index === 1 ? "bg-gradient-to-r from-zinc-400/20 to-transparent border-zinc-400/50" :
+                                            index === 2 ? "bg-gradient-to-r from-orange-500/20 to-transparent border-orange-500/50" :
+                                                "bg-card border-border"
                                 )}
-                            </div>
-
-                            <div className="flex-1">
-                                <h3 className={cn("font-bold text-lg", user.isUser && "text-indigo-400")}>{user.name}</h3>
-                                <p className="text-sm text-muted-foreground">Level {user.level}</p>
-                            </div>
-
-                            <div className="flex flex-col items-end gap-1">
-                                <div className="flex items-center gap-1 font-mono font-bold text-lg">
-                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                    {user.starsGiven}
+                            >
+                                <div className="w-12 flex justify-center font-black text-xl text-muted-foreground">
+                                    {index === 0 ? <Medal className="w-8 h-8 text-yellow-500" /> :
+                                        index === 1 ? <Medal className="w-8 h-8 text-zinc-400" /> :
+                                            index === 2 ? <Medal className="w-8 h-8 text-orange-500" /> :
+                                                `#${index + 1}`}
                                 </div>
-                                <span className="text-xs text-muted-foreground">{user.xp} XP</span>
+
+                                <div className="relative">
+                                    <div className={cn("w-12 h-12 rounded-full overflow-hidden border-2",
+                                        index === 0 ? "border-yellow-500" : "border-border"
+                                    )}>
+                                        <img src={user.avatar} className="w-full h-full object-cover" />
+                                    </div>
+                                    {user.isUser && (
+                                        <div className="absolute -bottom-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                            YOU
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className={cn("font-bold text-lg", user.isUser && "text-indigo-400")}>{user.name}</h3>
+                                        {!user.isUser && (
+                                            <>
+                                                <FollowButton
+                                                    targetUserId={user.id}
+                                                    initialIsFollowing={user.isFollowing}
+                                                    className="group"
+                                                />
+                                                <button
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (user.id) {
+                                                            const res = await createConversation(user.id);
+                                                            if (res.success && res.conversationId) {
+                                                                router.push(`/messages?id=${res.conversationId}`);
+                                                            } else {
+                                                                alert(`Failed to start conversation: ${res.error}`);
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-full transition-colors"
+                                                    title="Message"
+                                                >
+                                                    <MessageSquarePlus className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">Level {user.level}</p>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1">
+                                    <div className="flex items-center gap-1 font-mono font-bold text-lg">
+                                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                        {user.starsGiven}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">{user.xp} XP</span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
         </div>

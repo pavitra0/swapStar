@@ -126,21 +126,43 @@ export const repoStore = {
         };
     },
 
-    getLeaderboard: async () => {
-        const users = await prisma.user.findMany({
-            orderBy: { xp: 'desc' },
-            take: 10,
-            include: { badges: true }
-        });
+    getLeaderboard: async (currentUserId?: string) => {
+        try {
+            const includeParams: any = { badges: true };
+            if (currentUserId) {
+                includeParams.followedBy = { where: { followerId: currentUserId } };
+            }
 
-        return users.map(u => ({
-            name: u.name || "Anonymous",
-            avatar: u.image || "https://github.com/shadcn.png",
-            xp: u.xp,
-            level: u.level,
-            starsGiven: u.starsGiven,
-            badges: u.badges.map(b => b.badgeId),
-            isUser: false // context dependent
-        }));
+            const users = await prisma.user.findMany({
+                orderBy: { xp: 'desc' },
+                take: 10,
+                include: includeParams
+            });
+
+            return users.map(u => ({
+                id: u.id,
+                name: u.name || "Anonymous",
+                avatar: u.image || "https://github.com/shadcn.png",
+                xp: u.xp,
+                level: u.level,
+                starsGiven: u.starsGiven,
+                badges: u.badges.map(b => b.badgeId),
+                isUser: u.id === currentUserId,
+                isFollowing: (u as any).followedBy ? (u as any).followedBy.length > 0 : false
+            }));
+        } catch (error: any) {
+            console.error("Get Leaderboard Error:", error);
+            return [{
+                id: "error",
+                name: `Error: ${error.message}`,
+                avatar: "",
+                xp: 0,
+                level: 0,
+                starsGiven: 0,
+                badges: [],
+                isUser: false,
+                isFollowing: false
+            }];
+        }
     }
 };

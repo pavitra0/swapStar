@@ -7,7 +7,7 @@ import { getUserStats } from "@/app/actions";
 
 export function UserSidebar() {
     const { data: session } = useSession();
-    const [stats, setStats] = useState({ xp: 0, level: 1, starsGiven: 0 });
+    const [stats, setStats] = useState({ xp: 0, level: 1, starsGiven: 0, followers: 0, following: 0 });
 
     useEffect(() => {
         if (session?.user) {
@@ -28,6 +28,21 @@ export function UserSidebar() {
                 </div>
                 <h2 className="text-lg font-bold truncate w-full">{session.user.name}</h2>
                 <p className="text-xs text-muted-foreground truncate w-full">{session.user.email}</p>
+
+                <div className="flex items-center gap-4 mt-4 text-sm">
+                    <div className="flex flex-col items-center">
+                        <span className="font-bold">{stats.followers || 0}</span>
+                        <span className="text-xs text-muted-foreground">Followers</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <span className="font-bold">{stats.following || 0}</span>
+                        <span className="text-xs text-muted-foreground">Following</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <span className="font-bold">{stats.starsGiven || 0}</span>
+                        <span className="text-xs text-muted-foreground">Stars</span>
+                    </div>
+                </div>
             </div>
 
             <div className="flex-1">
