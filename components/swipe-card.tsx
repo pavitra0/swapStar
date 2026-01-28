@@ -71,59 +71,72 @@ export function SwipeCard({ repo, onSwipe, frontCard = false }: SwipeCardProps) 
 
             {/* Score Badge */}
             <div className="absolute top-6 right-6 z-10">
-                <div className="relative flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-xl border border-white/10 rounded-full shadow-lg group-hover:scale-110 transition-transform">
-                    <svg className="absolute inset-0 w-full h-full -rotate-90 text-indigo-500" viewBox="0 0 36 36">
-                        <path className="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                        <path className="" strokeDasharray={`${repo.score}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                <div className="relative flex flex-col items-center justify-center w-20 h-20 bg-black/60 backdrop-blur-xl border border-blue-500/30 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90 text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" viewBox="0 0 36 36">
+                        <path className="text-white/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2.5" />
+                        <path className="" strokeDasharray={`${repo.score}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2.5" />
                     </svg>
-                    <span className="text-sm font-bold">{repo.score}</span>
+                    <span className="text-2xl font-black text-white leading-none mt-1">{repo.score}</span>
+                    <span className="text-[8px] font-bold text-blue-400 uppercase tracking-widest mt-0.5">HEALTH</span>
                 </div>
             </div>
 
-            <div className="absolute bottom-0 inset-x-0 p-8 flex flex-col justify-end h-full pointer-events-none bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-32">
-                <div className="space-y-4">
+            <div className="absolute bottom-0 inset-x-0 p-8 flex flex-col justify-end h-full pointer-events-none bg-gradient-to-t from-black/95 via-black/60 to-transparent pt-32">
+                <div className="space-y-6">
                     {/* Header */}
-                    <div className="flex items-center gap-3">
-                        <a href={`/profile/${repo.owner.login}`} className="block relative z-20 hover:opacity-80 transition-opacity">
-                            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/10 overflow-hidden shadow-sm shrink-0">
+                    <div className="space-y-3">
+                        <a href={`/profile/${repo.owner.login}`} className="block relative z-20 hover:opacity-80 transition-opacity w-fit">
+                            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
                                 <img src={repo.owner.avatar_url} alt={repo.owner.login} className="w-full h-full object-cover" />
                             </div>
                         </a>
                         <div>
-                            <h3 className="text-2xl font-bold leading-tight text-white drop-shadow-md line-clamp-1">{repo.name}</h3>
-                            <a href={`/profile/${repo.owner.login}`} className="relative z-20 text-sm font-medium text-zinc-300 hover:text-white transition-colors">@{repo.owner.login}</a>
+                            <h3 className="text-4xl font-black leading-tight text-white drop-shadow-md line-clamp-2">{repo.name}</h3>
+                            <a href={`/profile/${repo.owner.login}`} className="relative z-20 flex items-center gap-1 text-lg font-medium text-blue-400 hover:text-blue-300 transition-colors w-fit">
+                                @{repo.owner.login}
+                                <span className="opacity-50">v{repo.default_branch || "main"}</span>
+                            </a>
                         </div>
                     </div>
 
                     {/* Description */}
-                    <p className="text-zinc-300 text-sm leading-relaxed line-clamp-3">
+                    <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3 font-medium">
                         {repo.description || "No description provided."}
                     </p>
 
                     {/* Topics */}
                     <div className="flex flex-wrap gap-2">
                         {repo.topics.slice(0, 3).map((topic: string) => (
-                            <span key={topic} className="px-2 py-1 rounded-md bg-white/10 border border-white/5 text-[10px] uppercase font-semibold tracking-wider text-white/80">
+                            <span key={topic} className="px-3 py-1.5 rounded-lg bg-zinc-800/80 border border-white/5 text-[10px] uppercase font-bold tracking-widest text-zinc-400 shadow-sm">
                                 {topic}
                             </span>
                         ))}
                     </div>
 
                     {/* Metrics Line */}
-                    <div className="pt-4 border-t border-white/10 flex justify-between items-center text-white">
-                        <div className="flex items-center gap-2">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                            <span className="font-bold text-sm">{(repo.stargazers_count / 1000).toFixed(1)}k</span>
+                    <div className="pt-6 border-t border-white/5 flex justify-between items-center text-zinc-400">
+                        <div className="flex flex-col items-center gap-0.5 min-w-[60px]">
+                            <div className="flex items-center gap-1.5 text-yellow-400">
+                                <Star className="w-5 h-5 fill-current" />
+                                <span className="font-black text-white text-lg">{(repo.stargazers_count / 1000).toFixed(1)}k</span>
+                            </div>
+                            <span className="text-[10px] font-bold tracking-wider opacity-60">STARS</span>
                         </div>
-                        <div className="h-4 w-px bg-white/20" />
-                        <div className="flex items-center gap-2">
-                            <GitFork className="w-4 h-4 text-blue-400" />
-                            <span className="font-bold text-sm">{repo.forks_count}</span>
+                        <div className="h-8 w-px bg-white/10" />
+                        <div className="flex flex-col items-center gap-0.5 min-w-[60px]">
+                            <div className="flex items-center gap-1.5 text-blue-400">
+                                <GitFork className="w-5 h-5" />
+                                <span className="font-black text-white text-lg">{repo.forks_count}</span>
+                            </div>
+                            <span className="text-[10px] font-bold tracking-wider opacity-60">FORKS</span>
                         </div>
-                        <div className="h-4 w-px bg-white/20" />
-                        <div className="flex items-center gap-2">
-                            <Eye className="w-4 h-4 text-emerald-400" />
-                            <span className="font-bold text-sm">{repo.watchers_count}</span>
+                        <div className="h-8 w-px bg-white/10" />
+                        <div className="flex flex-col items-center gap-0.5 min-w-[60px]">
+                            <div className="flex items-center gap-1.5 text-emerald-400">
+                                <Eye className="w-5 h-5" />
+                                <span className="font-black text-white text-lg">{repo.watchers_count}</span>
+                            </div>
+                            <span className="text-[10px] font-bold tracking-wider opacity-60">VIEWS</span>
                         </div>
                     </div>
                 </div>
