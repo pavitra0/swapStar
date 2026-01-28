@@ -146,7 +146,7 @@ export const repoStore = {
                 xp: u.xp,
                 level: u.level,
                 starsGiven: u.starsGiven,
-                badges: u.badges.map(b => b.badgeId),
+                badges: u.badges.map((b: any) => b.badgeId),
                 isUser: u.id === currentUserId,
                 isFollowing: (u as any).followedBy ? (u as any).followedBy.length > 0 : false
             }));

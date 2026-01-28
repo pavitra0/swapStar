@@ -38,7 +38,7 @@ export function DeveloperProfile({ username }: DeveloperProfileProps) {
 
     return (
         <div className="w-full bg-card border border-border rounded-3xl p-6 shadow-xl h-[600px] flex flex-col relative overflow-hidden">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Developer Profile</h3>
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Owner Dossier</h3>
 
             {loading ? (
                 <div className="flex-1 flex items-center justify-center">

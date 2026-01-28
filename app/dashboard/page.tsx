@@ -1,144 +1,11 @@
-// "use client";
 
-// import { useSession, signIn } from "next-auth/react";
-// import { SwipeCard } from "@/components/swipe-card";
-// import { RepoAnalysis } from "@/lib/types";
-// import { useEffect, useState } from "react";
-// import { Loader2, Shuffle, CheckCircle, Smartphone } from "lucide-react";
-// import { starRepo, fetchHiddenGems } from "@/app/actions";
-// import { AnimatePresence } from "framer-motion";
-// import { SubmitRepo } from "@/components/submit-repo";
-
-// export default function DashboardPage() {
-//     const { data: session, status } = useSession();
-//     const [feed, setFeed] = useState<(RepoAnalysis["repo"] & { score: number })[]>([]);
-//     const [loadingFeed, setLoadingFeed] = useState(true);
-//     const [currentTopic, setCurrentTopic] = useState("react");
-
-//     useEffect(() => {
-//         if (status === "authenticated") {
-//             loadGems(currentTopic);
-//         }
-//     }, [status, currentTopic]);
-
-//     const loadGems = async (topic: string) => {
-//         setLoadingFeed(true);
-//         try {
-//             const gems = await fetchHiddenGems(topic);
-//             setFeed(gems);
-//         } catch (e) {
-//             console.error(e);
-//         } finally {
-//             setLoadingFeed(false);
-//         }
-//     };
-
-//     const removeCard = (id: number) => {
-//         setFeed((prev) => prev.filter((repo) => repo.id !== id));
-//     };
-
-//     const handleSwipe = async (direction: "left" | "right", repo: RepoAnalysis["repo"]) => {
-//         removeCard(repo.id);
-
-//         if (direction === "right") {
-//             try {
-//                 const result = await starRepo(repo.full_name);
-//                 if (!result.success) {
-//                     console.error("Failed to star:", result.error);
-//                 }
-//             } catch (e) {
-//                 console.error(e);
-//             }
-//         }
-//     };
-
-//     if (status === "loading" || loadingFeed) {
-//         return (
-//             <div className="flex h-[50vh] items-center justify-center flex-col gap-4">
-//                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-//                 <p className="text-muted-foreground animate-pulse">Finding your next swap...</p>
-//             </div>
-//         );
-//     }
-
-//     if (status === "unauthenticated") {
-//         return (
-//             <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-//                 <h2 className="text-2xl font-bold">Sign in to SwapStars</h2>
-//                 <button
-//                     onClick={() => signIn("github")}
-//                     className="px-6 py-2 bg-primary text-primary-foreground rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:scale-105"
-//                 >
-//                     Connect GitHub
-//                 </button>
-//             </div>
-//         )
-//     }
-
-//     return (
-//         <div className="space-y-8 flex flex-col items-center max-w-lg mx-auto">
-//             <div className="text-center space-y-2">
-//                 <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">Star Exchange</h1>
-//                 <p className="text-muted-foreground flex items-center justify-center gap-2">
-//                     <Smartphone className="w-4 h-4" /> Swap stars with the community
-//                 </p>
-//                 <div className="pt-2">
-//                     <SubmitRepo />
-//                 </div>
-//             </div>
-
-//             <div className="flex gap-2 overflow-x-auto pb-2 w-full justify-center">
-//                 {["react", "ai", "cli", "tools", "nextjs"].map(topic => (
-//                     <button
-//                         key={topic}
-//                         onClick={() => setCurrentTopic(topic)}
-//                         className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${currentTopic === topic
-//                             ? "bg-primary text-primary-foreground border-primary"
-//                             : "bg-secondary/50 text-muted-foreground border-transparent hover:bg-secondary"
-//                             }`}
-//                     >
-//                         #{topic}
-//                     </button>
-//                 ))}
-//             </div>
-
-//             <div className="relative w-full aspect-[3/4] max-w-sm mt-8">
-//                 <AnimatePresence>
-//                     {feed.map((repo, index) => (
-//                         <SwipeCard
-//                             key={repo.id}
-//                             repo={repo}
-//                             frontCard={index === feed.length - 1}
-//                             onSwipe={(dir) => handleSwipe(dir, repo)}
-//                         />
-//                     )).reverse()}
-//                 </AnimatePresence>
-
-//                 {feed.length === 0 && (
-//                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-border rounded-3xl bg-secondary/10">
-//                         <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-//                         <h3 className="text-xl font-bold mb-2">All caught up!</h3>
-//                         <p className="text-muted-foreground mb-6">You've reviewed all suggested repositories for now.</p>
-//                         <button onClick={() => window.location.reload()} className="p-2 hover:bg-secondary rounded-full transition-colors" title="Shuffle Feed">
-//                             <Shuffle className="w-5 h-5 text-muted-foreground" />
-//                         </button>
-//                     </div>
-//                 )}
-//             </div>
-
-//             <div className="text-xs text-muted-foreground/50 text-center">
-//                 Press Arrow Keys or Swipe logic
-//             </div>
-//         </div>
-//     );
-// }
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
 import { SwipeCard } from "@/components/swipe-card";
 import { RepoAnalysis } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { Loader2, Shuffle, CheckCircle, Smartphone } from "lucide-react";
+import { Loader2, Shuffle, CheckCircle, Smartphone, X, Star } from "lucide-react";
 import { starRepo, fetchHiddenGems } from "@/app/actions";
 import { AnimatePresence } from "framer-motion";
 import { SubmitRepo } from "@/components/submit-repo";
@@ -224,7 +91,7 @@ export default function DashboardPage() {
 
             {/* Header */}
             <div className="text-center space-y-2 w-full">
-                <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                     Star Exchange
                 </h1>
 
@@ -239,14 +106,14 @@ export default function DashboardPage() {
             {/* Topics */}
             <div className="w-full overflow-x-auto">
                 <div className="flex gap-2 min-w-max px-1">
-                    {["react", "ai", "cli", "tools", "nextjs"].map((topic) => (
+                    {["react", "ai", "cli", "tools", "nextjs", "rust", "web3"].map((topic) => (
                         <button
                             key={topic}
                             onClick={() => setCurrentTopic(topic)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-colors
+                            className={`px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-300
               ${currentTopic === topic
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "bg-secondary/50 text-muted-foreground border-transparent hover:bg-secondary"
+                                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+                                    : "bg-secondary/30 backdrop-blur-md text-muted-foreground border-white/5 hover:bg-secondary/50 hover:border-white/10"
                                 }`}
                         >
                             #{topic}
@@ -294,6 +161,22 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-xs text-muted-foreground/50 text-center mt-4">
                         Use arrow keys or swipe
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 mt-6">
+                        <button
+                            onClick={() => feed.length > 0 && handleSwipe("left", feed[feed.length - 1])}
+                            className="w-16 h-16 rounded-full bg-secondary/80 backdrop-blur-sm flex items-center justify-center border border-white/10 shadow-lg hover:scale-110 active:scale-95 transition-all group"
+                        >
+                            <X className="w-8 h-8 text-red-500 group-hover:text-red-400" />
+                        </button>
+                        <button
+                            onClick={() => feed.length > 0 && handleSwipe("right", feed[feed.length - 1])}
+                            className="w-16 h-16 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center border border-primary/50 shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:scale-110 active:scale-95 transition-all group"
+                        >
+                            <Star className="w-8 h-8 text-primary group-hover:text-white fill-current" />
+                        </button>
                     </div>
                 </div>
 
